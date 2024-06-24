@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドミニオン デッキ引き切り確率計算機</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #4a5568;
+            text-align: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4a5568;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2d3748;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>ドミニオン デッキ引き切り確率計算機</h1>
+    
+    <div class="container">
+        <div class="section">
+            <h2>単一計算</h2>
+            <div class="grid">
+                <div>
+                    <label for="deckSize">デッキ枚数</label>
+                    <input type="number" id="deckSize" value="10">
+                </div>
+                <div>
+                    <label for="draw1">ドロー1</label>
+                    <input type="number" id="draw1" value="0">
+                </div>
+                <div>
+                    <label for="draw2">ドロー2</label>
+                    <input type="number" id="draw2" value="0">
+                </div>
+                <div>
+                    <label for="draw3">ドロー3</label>
+                    <input type="number" id="draw3" value="0">
+                </div>
+                <div>
+                    <label for="draw4">ドロー4</label>
+                    <input type="number" id="draw4" value="0">
+                </div>
+                <div>
+                    <label for="draw5">ドロー5</label>
+                    <input type="number" id="draw5" value="0">
+                </div>
+            </div>
+            <button onclick="calculate()">計算</button>
+            <p id="singleResult"></p>
+        </div>
+
+        <div class="section">
+            <h2>確率表生成</h2>
+            <div class="grid">
+                <div>
+                    <label for="maxDeckSize">最大デッキ枚数</label>
+                    <input type="number" id="maxDeckSize" value="30">
+                </div>
+                <div>
+                    <label for="maxDrawCardCount">最大ドロー枚数</label>
+                    <input type="number" id="maxDrawCardCount" value="5">
+                </div>
+                <div>
+                    <label for="selectedDrawCard">対象ドローカード</label>
+                    <select id="selectedDrawCard">
+                        <option value="1">ドロー1</option>
+                        <option value="2" selected>ドロー2</option>
+                        <option value="3">ドロー3</option>
+                        <option value="4">ドロー4</option>
+                        <option value="5">ドロー5</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="calculateTable()">表を生成</button>
+        </div>
+    </div>
+
+    <div id="tableResult"></div>
+
+    <div class="section" style="margin-top: 20px;">
+        <h3>使い方：</h3>
+        <ol>
+            <li>単一計算：デッキ枚数と各ドローカードの枚数を入力し、「計算」をクリックします。</li>
+            <li>確率表生成：最大デッキ枚数、最大ドロー枚数、対象ドローカードを選択し、「表を生成」をクリックします。</li>
+            <li>表の色：緑に近いほど引き切り確率が高く、赤に近いほど低いことを示します。</li>
+        </ol>
+    </div>
+
+    <script>
+        function simulateDraw(deckSize, drawCards) {
+            let deck = Array(deckSize).fill(0);
+            drawCards.forEach(card => deck.fill(card.draw, 0, card.count));
+            deck.sort(() => Math.random() - 0.5);
+            
+            let hand = deck.splice(0, 5);
+            while (hand.length > 0) {
+                const card = hand.pop();
+                hand.push(...deck.splice(0, card));
+            }
+            
+            return deck.length === 0;
+        }
+
+        function calculateProbability(deckSize, drawCards, simulations = 10000) {
+            let successCount = 0;
+            for (let i = 0; i < simulations; i++) {
+                if (simulateDraw(deckSize, drawCards)) successCount++;
+            }
+            return successCount / simulations;
+        }
+
+        function getColorForProbability(probability) {
+            const r = Math.round(255 * (1 - probability));
+            const g = Math.round(255 * probability);
+            return `rgb(${r}, ${g}, 0)`;
+        }
+
+        function getDrawCards() {
+            return [1,2,3,4,5].map(draw => ({
+                draw,
+                count: parseInt(document.getElementById(`draw${draw}`).value) || 0
+            }));
+        }
+
+        function calculate() {
+            const deckSize = parseInt(document.getElementById('deckSize').value);
+            const drawCards = getDrawCards();
+            const probability = calculateProbability(deckSize, drawCards);
+            document.getElementById('singleResult').textContent = `引き切り確率: ${(probability * 100).toFixed(2)}%`;
+        }
+
+        function calculateTable() {
+            const maxDeckSize = parseInt(document.getElementById('maxDeckSize').value);
+            const maxDrawCardCount = parseInt(document.getElementById('maxDrawCardCount').value);
+            const selectedDrawCard = parseInt(document.getElementById('selectedDrawCard').value);
+            
+            let tableHTML = '<table><tr><th>デッキ枚数</th>';
+            for (let c = 0; c <= maxDrawCardCount; c++) {
+                tableHTML += `<th>ドロー${selectedDrawCard} ${c}枚</th>`;
+            }
+            tableHTML += '</tr>';
+
+            for (let d = 10; d <= maxDeckSize; d++) {
+                tableHTML += `<tr><td>${d}</td>`;
+                for (let c = 0; c <= maxDrawCardCount; c++) {
+                    const drawCards = getDrawCards().map(card => 
+                        card.draw === selectedDrawCard ? { ...card, count: c } : card
+                    );
+                    const probability = calculateProbability(d, drawCards);
+                    const color = getColorForProbability(probability);
+                    tableHTML += `<td style="background-color: ${color}">${(probability * 100).toFixed(2)}%</td>`;
+                }
+                tableHTML += '</tr>';
+            }
+            tableHTML += '</table>';
+            document.getElementById('tableResult').innerHTML = tableHTML;
+        }
+    </script>
+</body>
+</html>
