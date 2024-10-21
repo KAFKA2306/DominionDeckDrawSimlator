@@ -94,7 +94,7 @@ class JoinWarsOptimizer:
         min_count = int(math.sqrt(self.constants.MIN_ACCEPTABLE_VICTORY_POINTS / self.constants.VICTORY_POINT_MULTIPLIER))
         max_count = int(math.sqrt(self.constants.MAX_ACCEPTABLE_VICTORY_POINTS / self.constants.VICTORY_POINT_MULTIPLIER))
         
-        for base_count in range(min_count, max_count + 1):
+        for base_count in range(min_count, max_count + 1): # この制約は無用かつ有害であり、制約なしにするか、最適アルゴリズムを別途作成するのが望ましい。
             # Generate strategies with balanced TM and Sub counts
             for tm_count, sub_count in [(base_count, base_count), (base_count + 1, base_count), (base_count, base_count + 1)]:
                 victory_points = self.calculate_victory_points(tm_count, sub_count)
