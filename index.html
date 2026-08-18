@@ -1,25 +1,33 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ドミニオン デッキ引き切り確率計算機</title>
-<style>body{font-family:system-ui,sans-serif;max-width:960px;margin:auto;padding:24px;line-height:1.6}fieldset{margin:16px 0;padding:16px}label{display:block;margin:8px 0}input{width:8rem;padding:6px}button{padding:8px 16px}table{border-collapse:collapse;width:100%;margin-top:16px}th,td{border:1px solid #bbb;padding:6px;text-align:right}.error{color:#a00}.note{background:#f4f4f4;padding:12px}</style>
+<style>body{font-family:system-ui,sans-serif;max-width:960px;margin:auto;padding:24px;line-height:1.6}fieldset{margin:16px 0;padding:16px}label{display:block;margin:8px 0}input{width:8rem;padding:6px}button{padding:8px 16px}table{border-collapse:collapse;width:100%;margin-top:16px}th,td{border:1px solid #bbb;padding:6px;text-align:right}.error{color:#a00}.note{background:#f4f4f4;padding:12px}.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.actions a{padding:6px 0}</style>
 </head><body><h1>ドミニオン デッキ引き切り確率計算機</h1>
 <p class="note">厳密計算。初期手札5枚、アクション回数制限なし、捨て札・再シャッフル・獲得・持続・村効果なし。カード順は一様ランダムと仮定します。</p>
 <fieldset><legend>単一計算</legend>
 <label>デッキ枚数 <input id="deck" type="number" min="0" max="200" value="20"></label>
 <div id="drawInputs"></div><button id="calculate">厳密確率を計算</button>
-<p id="result" aria-live="polite"></p></fieldset>
+<p id="result" aria-live="polite"></p>
+<div class="actions"><button id="copyShare" type="button">共有URLをコピー</button><a href="https://github.com/KAFKA2306/DominionDeckDrawSimlator/issues/new?title=スポンサー・共同企画の相談&amp;body=用途:%0A掲載予定URL:%0A希望時期:%0A相談内容:%0A%0A公開Issueのため、個人情報・未公開契約条件・認証情報は書かないでください。">スポンサー・共同企画を相談する</a></div>
+<p id="shareStatus" aria-live="polite"></p>
+<p><small>共有URLには計算モデル version 1 と入力条件を保存します。</small></p></fieldset>
 <fieldset><legend>研究所（+2ドロー）確率表</legend>
 <label>最大デッキ枚数 <input id="maxDeck" type="number" min="10" max="80" value="30"></label>
 <label>最大研究所枚数 <input id="maxLabs" type="number" min="0" max="40" value="13"></label>
 <button id="tableButton">表を生成（最大1,000セル）</button><div id="table"></div></fieldset>
 <script type="module">
 import {exactDrawProbability} from "./probability.js";
+import {decodeCalculationState,updateCalculationSearch} from "./share-state.js";
 const drawInputs=document.querySelector("#drawInputs");
 for(let d=1;d<=5;d++){const label=document.createElement("label");label.textContent=`+${d}ドローカード枚数 `;const input=document.createElement("input");input.type="number";input.min="0";input.max="200";input.value=d===2?"8":"0";input.id=`draw${d}`;label.append(input);drawInputs.append(label);}
 const value=id=>Number(document.querySelector(id).value);
 const counts=()=>[1,2,3,4,5].map(d=>value(`#draw${d}`));
 function showError(target,error){target.className="error";target.textContent=error.message;}
-document.querySelector("#calculate").onclick=()=>{const out=document.querySelector("#result");try{const p=exactDrawProbability(value("#deck"),counts());out.className="";out.textContent=`引き切り確率: ${(p*100).toFixed(6)}%`; }catch(e){showError(out,e);}};
+function applyState(state){document.querySelector("#deck").value=String(state.deckSize);state.drawCounts.forEach((count,index)=>{document.querySelector(`#draw${index+1}`).value=String(count);});}
+function syncUrl(){const query=updateCalculationSearch(location.search,value("#deck"),counts());history.replaceState(null,"",`${location.pathname}?${query}${location.hash}`);}
+function calculate(updateUrl=true){const out=document.querySelector("#result");try{const p=exactDrawProbability(value("#deck"),counts());if(updateUrl)syncUrl();out.className="";out.textContent=`引き切り確率: ${(p*100).toFixed(6)}%`;return true;}catch(e){showError(out,e);return false;}}
+document.querySelector("#calculate").onclick=()=>calculate();
+document.querySelector("#copyShare").onclick=async()=>{const status=document.querySelector("#shareStatus");try{syncUrl();await navigator.clipboard.writeText(location.href);status.className="";status.textContent="共有URLをコピーしました";}catch(e){showError(status,e);}};
 document.querySelector("#tableButton").onclick=()=>{const root=document.querySelector("#table");try{const maxDeck=value("#maxDeck"),maxLabs=value("#maxLabs");if(!Number.isInteger(maxDeck)||maxDeck<10||maxDeck>80||!Number.isInteger(maxLabs)||maxLabs<0||maxLabs>40)throw new RangeError("表の範囲が不正です");const cells=(maxDeck-9)*(maxLabs+1);if(cells>1000)throw new RangeError("表は1,000セル以下にしてください");let html="<table><thead><tr><th>デッキ</th>";for(let l=0;l<=maxLabs;l++)html+=`<th>${l}枚</th>`;html+="</tr></thead><tbody>";for(let n=10;n<=maxDeck;n++){html+=`<tr><th>${n}</th>`;for(let l=0;l<=maxLabs;l++){html+=l>n?"<td>—</td>":`<td>${(exactDrawProbability(n,[0,l,0,0,0])*100).toFixed(2)}%</td>`;}html+="</tr>";}root.className="";root.innerHTML=html+"</tbody></table>";}catch(e){root.innerHTML="";showError(root,e);}};
-document.querySelector("#calculate").click();
+try{const shared=decodeCalculationState(location.search);if(shared)applyState(shared);calculate(false);}catch(e){showError(document.querySelector("#result"),e);}
 </script></body></html>
