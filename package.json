@@ -1,1 +1,1 @@
-{"name":"dominion-deck-draw-simulator","private":true,"type":"module","scripts":{"test":"node --test probability.test.js"}}
+{"name":"dominion-deck-draw-simulator","private":true,"type":"module","scripts":{"test":"node --test probability.test.js share-state.test.js ui.test.js"}}
