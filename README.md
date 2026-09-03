@@ -1,8 +1,8 @@
+https://kafka2306.github.io/DominionDeckDrawSimlator/
+
 # ドミニオン デッキ引き切り確率計算機
 
 [![Exact probability tests](https://github.com/KAFKA2306/DominionDeckDrawSimlator/actions/workflows/test.yml/badge.svg)](https://github.com/KAFKA2306/DominionDeckDrawSimlator/actions/workflows/test.yml)
-
-公開ページ: https://kafka2306.github.io/DominionDeckDrawSimlator/
 
 ## 対象モデル
 
