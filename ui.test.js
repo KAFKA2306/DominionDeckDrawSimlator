@@ -29,7 +29,8 @@ test("sensitivity comparison reuses the exact probability model", () => {
   assert.match(html, /minus=exactDrawProbability\(deck,next\)/);
   assert.match(html, /plus=exactDrawProbability\(deck,next\)/);
   assert.match(html, /drawCounts\[1\]/);
-  assert.match(html, /delta\.toFixed\(3\) pt/);
+  assert.match(html, /delta\.toFixed\(3\)/);
+  assert.match(html, /pt`/);
 });
 
 test("design authority foundation values are reused without a second token file", () => {
