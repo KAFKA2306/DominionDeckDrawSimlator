@@ -24,6 +24,13 @@ test("primary decision path shows result before the secondary table", () => {
   assert.match(html, /研究所±1枚/);
 });
 
+test("mobile journey keeps conditions before calculated results", () => {
+  assert.ok(html.indexOf('class="panel input-panel"') < html.indexOf('class="panel result-panel"'));
+  const mobileCss = html.match(/@media\(max-width:760px\)\{([\s\S]*?)\n    \}/)?.[1] ?? "";
+  assert.doesNotMatch(mobileCss, /\.result-panel\{[^}]*grid-row:/);
+  assert.doesNotMatch(mobileCss, /\.input-panel\{[^}]*grid-row:/);
+});
+
 test("sensitivity comparison reuses the exact probability model", () => {
   assert.match(html, /function renderSensitivity\(deck,drawCounts,current\)/);
   assert.match(html, /minus=exactDrawProbability\(deck,next\)/);
