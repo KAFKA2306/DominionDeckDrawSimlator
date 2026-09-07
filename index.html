@@ -193,6 +193,10 @@ function renderSensitivity(deck,drawCounts,current){
   document.querySelector("#scenarioMinus").innerHTML=scenarioMarkup(`研究所 ${Math.max(0,labCount-1)}枚`,minus,minus===null?null:(minus-current)*100);
   document.querySelector("#scenarioCurrent").innerHTML=scenarioMarkup(`現在 ${labCount}枚`,current,null);
   document.querySelector("#scenarioPlus").innerHTML=scenarioMarkup(`研究所 ${labCount+1}枚`,plus,plus===null?null:(plus-current)*100);
+  const plusDelta=plus===null?null:(plus-current)*100;
+  result.textContent=plusDelta===null
+    ? `デッキ${deck}枚 / 研究所${labCount}枚。これ以上研究所を増やせない条件です。`
+    : `研究所を1枚増やすと、引き切り確率は ${plusDelta>=0?"+":""}${plusDelta.toFixed(3)} pt 変わります。`;
 }
 function calculate(updateUrl=true){
   try{
@@ -202,7 +206,6 @@ function calculate(updateUrl=true){
     probability.className="probability";
     probability.textContent=formatProbability(p);
     result.className="result-meta";
-    result.textContent=`デッキ${deck}枚 / 研究所${drawCounts[1]}枚。下に±1枚の差を表示しています。`;
     renderSensitivity(deck,drawCounts,p);
     return true;
   }catch(e){
