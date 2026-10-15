@@ -1,0 +1,30 @@
+name: Lean 4 formal proofs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'proofs/**'
+      - '.github/workflows/lean-proofs.yml'
+  pull_request:
+    paths:
+      - 'proofs/**'
+      - '.github/workflows/lean-proofs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check formal proofs
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9
+        with:
+          lake-package-directory: proofs
+          build: 'true'
+          test: 'false'
+          lint: 'false'
+          use-mathlib-cache: 'false'

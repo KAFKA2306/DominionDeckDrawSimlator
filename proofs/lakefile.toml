@@ -1,0 +1,6 @@
+name = "dominion_proofs"
+version = "0.1.0"
+defaultTargets = ["DrawModel"]
+
+[[lean_lib]]
+name = "DrawModel"
