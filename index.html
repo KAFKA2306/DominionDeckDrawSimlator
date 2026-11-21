@@ -158,7 +158,7 @@ for(let d=1;d<=5;d++){
   input.value=d===2?"8":"0";input.id=`draw${d}`;
   label.append(input);drawInputs.append(label);
 }
-const value=id=>Number(document.querySelector(id).value);
+const value=id=>{const number=document.querySelector(id).valueAsNumber;if(!Number.isInteger(number))throw new RangeError("空欄を残さず整数を入力してください");return number;};
 const counts=()=>[1,2,3,4,5].map(d=>value(`#draw${d}`));
 const probability=document.querySelector("#probability");
 const result=document.querySelector("#result");
