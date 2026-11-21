@@ -172,11 +172,22 @@ function syncUrl(){
   const query=updateCalculationSearch(location.search,value("#deck"),counts());
   history.replaceState(null,"",`${location.pathname}?${query}${location.hash}`);
 }
-function formatProbability(p){return `${(p*100).toFixed(6)}%`;}
+function formatProbability(p){
+  const percent=p*100;
+  if(percent>0&&percent<0.01)return "<0.01%";
+  if(percent<100&&percent>99.99)return ">99.99%";
+  return `${Number(percent.toFixed(2))}%`;
+}
+function formatDelta(delta){
+  if(delta>0&&delta<0.01)return "+0.01 pt未満";
+  if(delta<0&&delta>-0.01)return "−0.01 pt未満";
+  const rounded=Number(delta.toFixed(2));
+  return `${rounded>0?"+":""}${rounded} pt`;
+}
 function scenarioMarkup(label,p,delta){
   if(p===null)return `<span class="scenario-label">${label}</span><strong>—</strong><small>条件外</small>`;
-  const deltaText=delta===null?"現在":`${delta>=0?"+":""}${delta.toFixed(3)} pt`;
-  return `<span class="scenario-label">${label}</span><strong>${(p*100).toFixed(3)}%</strong><small>${deltaText}</small>`;
+  const deltaText=delta===null?"現在":formatDelta(delta);
+  return `<span class="scenario-label">${label}</span><strong>${formatProbability(p)}</strong><small>${deltaText}</small>`;
 }
 function renderSensitivity(deck,drawCounts,current){
   const labCount=drawCounts[1];
@@ -196,7 +207,7 @@ function renderSensitivity(deck,drawCounts,current){
   const plusDelta=plus===null?null:(plus-current)*100;
   result.textContent=plusDelta===null
     ? `デッキ${deck}枚 / 研究所${labCount}枚。これ以上研究所を増やせない条件です。`
-    : `研究所を1枚増やすと、引き切り確率は ${plusDelta>=0?"+":""}${plusDelta.toFixed(3)} pt 変わります。`;
+    : `研究所を1枚増やすと、引き切り確率は ${formatDelta(plusDelta)} 変わります。`;
 }
 function calculate(updateUrl=true){
   try{
